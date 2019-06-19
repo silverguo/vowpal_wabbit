@@ -95,6 +95,12 @@ namespace GD
     }
 
     foreach_feature<float, update_feature<sqrt_rate, feature_mask_off, adaptive, normalized, spare> >(all, ec, update);
+
+    // not apply l2 shrinkage for bias update
+    float bias_compensate = update * all.reg.weight_vector[(bias_hashing<<all.reg.stride_shift)+spare];
+    bias_compensate *= (float)(all.sd->contraction - 1.);
+    all.reg.weight_vector[bias_hashing<<all.reg.stride_shift] += bias_compensate;
+
   }
 
   void end_pass(gd& g)
@@ -361,8 +367,12 @@ void predict(gd& g, learner& base, example& ec)
   else
     ec.partial_prediction = inline_predict(all, ec);    
 
+  // not apply l2 shrinkage to bias for prediction
+  float no_l2_bias_prediction = ec.partial_prediction * (float)all.sd->contraction;
+  no_l2_bias_prediction += (float)(1. - all.sd->contraction) * all.reg.weight_vector[bias_hashing<<all.reg.stride_shift];
+
   label_data& ld = *(label_data*)ec.ld;
-  ld.prediction = finalize_prediction(all, ec.partial_prediction * (float)all.sd->contraction);
+  ld.prediction = finalize_prediction(all, no_l2_bias_prediction);
   
   if (all.audit || all.hash_inv)
     print_audit_features(all, ec);
@@ -574,8 +584,10 @@ void sync_weights(vw& all) {
     return;
   uint32_t length = 1 << all.num_bits;
   size_t stride = 1 << all.reg.stride_shift;
-  for(uint32_t i = 0; i < length && all.reg_mode; i++)
-    all.reg.weight_vector[stride*i] = trunc_weight(all.reg.weight_vector[stride*i], (float)all.sd->gravity) * (float)all.sd->contraction;
+  for(uint32_t i = 0; i < length && all.reg_mode; i++){
+    if (i != (uint32_t)bias_hashing) // not apply l2 shrinkage to bias at the end of pass
+      all.reg.weight_vector[stride*i] = trunc_weight(all.reg.weight_vector[stride*i], (float)all.sd->gravity) * (float)all.sd->contraction;
+    }
   all.sd->gravity = 0.;
   all.sd->contraction = 1.;
 }

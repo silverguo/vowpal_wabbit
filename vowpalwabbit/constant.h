@@ -10,4 +10,5 @@ const int cubic_constant = 21791;
 const int cubic_constant2 = 37663;
 const int affix_constant = 13903957;
 const int constant = 11650396;
+const int bias_hashing = 7177687; // hashing code for special bias feature in 24 bits
 #endif
