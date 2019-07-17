@@ -79,14 +79,14 @@ inline void inner_kernel(R& dat, features::iterator_all& begin, features::iterat
     for (; begin != end; ++begin)
     {
       audit_func(dat, begin.audit().get());
-      call_T<R, T>(dat, weights, INTERACTION_VALUE(ft_value, begin.value()), (begin.index() ^ halfhash) + offset);
+      call_T<R, T>(dat, weights, INTERACTION_VALUE(ft_value, begin.value()), (begin.index() + halfhash) + offset);
       audit_func(dat, nullptr);
     }
   }
   else
   {
     for (; begin != end; ++begin)
-      call_T<R, T>(dat, weights, INTERACTION_VALUE(ft_value, begin.value()), (begin.index() ^ halfhash) + offset);
+      call_T<R, T>(dat, weights, INTERACTION_VALUE(ft_value, begin.value()), (begin.index() + halfhash) + offset);
   }
 }
 
@@ -138,7 +138,7 @@ inline void generate_interactions(std::vector<std::string>& interactions, bool p
 
           for (size_t i = 0; i < first.indicies.size(); ++i)
           {
-            feature_index halfhash = FNV_prime * (uint64_t)first.indicies[i];
+            feature_index halfhash = quadratic_constant * (uint64_t)first.indicies[i];
             if (audit)
               audit_func(dat, first.space_names[i].get());
             // next index differs for permutations and simple combinations
