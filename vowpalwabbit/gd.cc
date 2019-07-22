@@ -43,8 +43,8 @@ namespace GD
 {
 struct gd
 {
-  //  double normalized_sum_norm_x;
-  double total_weight;
+  //  float normalized_sum_norm_x;
+  float total_weight;
   size_t no_win_counter;
   size_t early_stop_thres;
   float initial_constant;
@@ -125,14 +125,14 @@ float average_update(float total_weight, float normalized_sum_norm_x, float neg_
   {
     if (sqrt_rate)
     {
-      float avg_norm = (float)(total_weight / normalized_sum_norm_x);
+      float avg_norm = total_weight / normalized_sum_norm_x;
       if (adaptive)
         return sqrt(avg_norm);
       else
         return avg_norm;
     }
     else
-      return powf((float)(normalized_sum_norm_x / total_weight), neg_norm_power);
+      return powf(normalized_sum_norm_x / total_weight, neg_norm_power);
   }
   return 1.f;
 }
@@ -362,9 +362,9 @@ inline void vec_add_trunc(trunc_data& p, const float fx, float& fw)
   p.prediction += trunc_weight(fw, p.gravity) * fx;
 }
 
-inline float trunc_predict(vw& all, example& ec, double gravity)
+inline float trunc_predict(vw& all, example& ec, float gravity)
 {
-  trunc_data temp = {ec.l.simple.initial, (float)gravity};
+  trunc_data temp = {ec.l.simple.initial, gravity};
   foreach_feature<trunc_data, vec_add_trunc>(all, ec, temp);
   return temp.prediction;
 }
@@ -558,15 +558,15 @@ float get_pred_per_update(gd& g, example& ec)
   {
     if (!stateless)
     {
-      g.all->normalized_sum_norm_x += ((double)ec.weight) * nd.norm_x;
+      g.all->normalized_sum_norm_x += ec.weight * nd.norm_x;
       g.total_weight += ec.weight;
       g.update_multiplier = average_update<sqrt_rate, adaptive, normalized>(
-          (float)g.total_weight, (float)g.all->normalized_sum_norm_x, g.neg_norm_power);
+          g.total_weight, g.all->normalized_sum_norm_x, g.neg_norm_power);
     }
     else
     {
-      float nsnx = ((float)g.all->normalized_sum_norm_x) + ec.weight * nd.norm_x;
-      float tw = (float)g.total_weight + ec.weight;
+      float nsnx = g.all->normalized_sum_norm_x + ec.weight * nd.norm_x;
+      float tw = g.total_weight + ec.weight;
       g.update_multiplier = average_update<sqrt_rate, adaptive, normalized>(tw, nsnx, g.neg_norm_power);
     }
     nd.pred_per_update *= g.update_multiplier;
@@ -878,7 +878,7 @@ void save_load_online_state(
 }
 
 void save_load_online_state(
-    vw& all, io_buf& model_file, bool read, bool text, double& total_weight, gd* g, uint32_t ftrl_size)
+    vw& all, io_buf& model_file, bool read, bool text, float& total_weight, gd* g, uint32_t ftrl_size)
 {
   // vw& all = *g.all;
   stringstream msg;

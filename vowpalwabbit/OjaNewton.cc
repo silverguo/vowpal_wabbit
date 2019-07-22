@@ -520,7 +520,7 @@ void save_load(OjaNewton& ON, io_buf& model_file, bool read, bool text)
     msg << ":" << resume << "\n";
     bin_text_read_write_fixed(model_file, (char*)&resume, sizeof(resume), "", read, msg, text);
 
-    double temp = 0.;
+    float temp = 0.;
     if (resume)
       GD::save_load_online_state(all, model_file, read, text, temp);
     else
