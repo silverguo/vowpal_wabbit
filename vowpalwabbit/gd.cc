@@ -44,7 +44,7 @@ namespace GD
 struct gd
 {
   //  float normalized_sum_norm_x;
-  float total_weight;
+  double total_weight;
   size_t no_win_counter;
   size_t early_stop_thres;
   float initial_constant;
@@ -561,7 +561,7 @@ float get_pred_per_update(gd& g, example& ec)
       g.all->normalized_sum_norm_x += ec.weight * nd.norm_x;
       g.total_weight += ec.weight;
       g.update_multiplier = average_update<sqrt_rate, adaptive, normalized>(
-          g.total_weight, g.all->normalized_sum_norm_x, g.neg_norm_power);
+          (float)g.total_weight, g.all->normalized_sum_norm_x, g.neg_norm_power);
     }
     else
     {
@@ -878,7 +878,7 @@ void save_load_online_state(
 }
 
 void save_load_online_state(
-    vw& all, io_buf& model_file, bool read, bool text, float& total_weight, gd* g, uint32_t ftrl_size)
+    vw& all, io_buf& model_file, bool read, bool text, double& total_weight, gd* g, uint32_t ftrl_size)
 {
   // vw& all = *g.all;
   stringstream msg;

@@ -39,7 +39,7 @@ struct ftrl
   size_t no_win_counter;
   size_t early_stop_thres;
   uint32_t ftrl_size;
-  float total_weight;
+  double total_weight;
 };
 
 struct uncertainty
